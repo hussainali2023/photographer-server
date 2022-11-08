@@ -21,6 +21,22 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+const run = async () => {
+  try {
+    const servicesCollection = client.db("photographer").collection("services");
+
+    app.get("/services", async (req, res) => {
+      const query = {};
+      const cursor = servicesCollection.find(query);
+      const services = await cursor.toArray();
+      res.send(services);
+    });
+  } catch {
+    console.error(error);
+  }
+};
+run();
+
 app.listen(port, () => {
   console.log(`Photographer Server is running on port: ${port}`);
 });
