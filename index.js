@@ -55,6 +55,13 @@ const run = async () => {
       const result = await reviewsCollection.insertOne(reviews);
       res.send(result);
     });
+    app.get("/reviews/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const cursor = reviewsCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
   } catch {
     console.error(error);
   }
