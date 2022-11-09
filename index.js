@@ -25,9 +25,11 @@ const run = async () => {
   try {
     const servicesCollection = client.db("photographer").collection("services");
 
-    app.get("/services", async (req, res) => {
+    app.get("/services-home", async (req, res) => {
       const query = {};
-      const cursor = servicesCollection.find(query);
+      const sort = { length: -1 };
+      const limit = 3;
+      const cursor = servicesCollection.find(query).sort(sort).limit(limit);
       const services = await cursor.toArray();
       res.send(services);
     });
