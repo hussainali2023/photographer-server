@@ -26,6 +26,12 @@ const run = async () => {
     const servicesCollection = client.db("photographer").collection("services");
     const reviewsCollection = client.db("photographer").collection("reviews");
 
+    app.post("/services", async (req, res) => {
+      const service = req.body;
+      const result = await servicesCollection.insertOne(service);
+      res.send(result);
+    });
+
     app.get("/services-home", async (req, res) => {
       const query = {};
       const sort = { length: -1 };
@@ -58,6 +64,14 @@ const run = async () => {
     app.get("/reviews/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
+      const cursor = reviewsCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
+
+    app.get("/reviews/:shortName", async (req, res) => {
+      const shortName = req.params.shortName;
+      const query = { shortName: shortName };
       const cursor = reviewsCollection.find(query);
       const reviews = await cursor.toArray();
       res.send(reviews);
