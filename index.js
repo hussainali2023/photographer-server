@@ -45,7 +45,7 @@ const run = async () => {
     app.post("/jwt", (req, res) => {
       const user = req.body;
       const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1h",
+        expiresIn: "1d",
       });
       res.send({ token });
     });
@@ -115,6 +115,29 @@ const run = async () => {
       const result = await reviewsCollection.deleteOne(query);
       res.send(result);
       // https://photographer-server-eta.vercel.app
+    });
+
+    // update
+    app.put("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const user = req.body;
+      const option = { upsart: true };
+      const updatedUser = {
+        $set: {
+          name: user.name,
+          photoURL: user.photoURL,
+          serviceId: user.serviceId,
+          email: user.email,
+          message: user.message,
+        },
+      };
+      const result = await reviewsCollection.updateOne(
+        filter,
+        updatedUser,
+        option
+      );
+      res.send(result);
     });
   } catch {
     console.error(error);
