@@ -30,7 +30,7 @@ const verifyJWT = (req, res, next) => {
   const token = authHeader.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
     if (err) {
-      res.status(401).send({ message: "Unauthorized access" });
+      return res.status(401).send({ message: "Unauthorized access" });
     }
     req.decoded = decoded;
     next();
@@ -107,6 +107,14 @@ const run = async () => {
       const cursor = reviewsCollection.find(query);
       const reviews = await cursor.toArray();
       res.send(reviews);
+    });
+
+    app.delete("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await reviewsCollection.deleteOne(query);
+      res.send(result);
+      // https://photographer-server-eta.vercel.app
     });
   } catch {
     console.error(error);
