@@ -114,7 +114,6 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const result = await reviewsCollection.deleteOne(query);
       res.send(result);
-      // https://photographer-server-eta.vercel.app
     });
 
     // update
