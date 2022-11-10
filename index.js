@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
@@ -21,10 +22,33 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+const verifyJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).send({ message: "Unauthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      res.status(401).send({ message: "Unauthorized access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+};
+
 const run = async () => {
   try {
     const servicesCollection = client.db("photographer").collection("services");
     const reviewsCollection = client.db("photographer").collection("reviews");
+
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
 
     app.post("/services", async (req, res) => {
       const service = req.body;
@@ -43,7 +67,8 @@ const run = async () => {
 
     app.get("/services", async (req, res) => {
       const query = {};
-      const cursor = servicesCollection.find(query);
+      const sort = { length: 1 };
+      const cursor = servicesCollection.find(query).sort(sort);
       const services = await cursor.toArray();
       res.send(services);
     });
@@ -61,7 +86,7 @@ const run = async () => {
       const result = await reviewsCollection.insertOne(reviews);
       res.send(result);
     });
-    app.get("/reviews/:email", async (req, res) => {
+    app.get("/reviews/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const cursor = reviewsCollection.find(query);
@@ -72,6 +97,13 @@ const run = async () => {
     app.get("/reviews/:shortName", async (req, res) => {
       const shortName = req.params.shortName;
       const query = { shortName: shortName };
+      const cursor = reviewsCollection.find(query);
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
+
+    app.get("/reviews", async (req, res) => {
+      const query = {};
       const cursor = reviewsCollection.find(query);
       const reviews = await cursor.toArray();
       res.send(reviews);
